@@ -503,7 +503,7 @@ class SparseBitVector(BitVectorWithSize):
         assert width <= self.size()
         if width == self.size():
             return s
-        if n > 64:
+        if n >= 64 or m >= 64:
             return self._to_generic().update_subrange(n, m, s)
         assert width == n - m + 1
         mask = ~(((r_uint(1) << width) - 1) << m)
