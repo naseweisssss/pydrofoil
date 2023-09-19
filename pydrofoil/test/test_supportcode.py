@@ -1826,9 +1826,24 @@ def test_sparse_vector_update_subrange():
         y = c(65, 0b1101001010010)
         x = x.update_subrange(64, 0, y)
         assert x.eq(y)
-    x = SparseBitVector(1000, 0b10001101)
-    y = gbv(1000, 0b1101001010010)
-    x = x.update_subrange(999, 0, y)
+        x = SparseBitVector(100, 0b10001101)
+        y = c(3, 0b000)
+        x = x.update_subrange(70, 68, y)
+        assert isinstance(x, SparseBitVector) # Remain in Sparse
+        
+    x = SparseBitVector(100, 0b10001101)
+    y = bv(100, 0b1101001010010)
+    x = x.update_subrange(99, 0, y)
+    assert isinstance(x, SparseBitVector)
+
+    x = SparseBitVector(120, 0b10001101)
+    y = bv(56, 0xffffffffffffff)
+    x = x.update_subrange(121, 66, y)
+    assert isinstance(x, bitvector.GenericBitVector)
+
+    x = SparseBitVector(120, 0b10001101)
+    y = bv(50, 0xfffffffffffff)
+    x = x.update_subrange(109, 60, y)
     assert isinstance(x, bitvector.GenericBitVector)
 
 @given(strategies.data())

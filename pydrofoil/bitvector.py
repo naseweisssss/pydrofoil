@@ -496,12 +496,15 @@ class SparseBitVector(BitVectorWithSize):
             return SparseBitVector(self.size(), self.val & ~mask)
 
     def update_subrange(self, n, m, s):
-        if  n > 64 or m > 64:
-            return self._to_generic().update_subrange(n, m, s)
+        # XXX Can be better
+        if m >= 64 and n >= 64 and s.touint() == 0: 
+            return SparseBitVector(self.size(), self.val) #basically the samething
         width = s.size()
         assert width <= self.size()
         if width == self.size():
             return s
+        if n > 64:
+            return self._to_generic().update_subrange(n, m, s)
         assert width == n - m + 1
         mask = ~(((r_uint(1) << width) - 1) << m)
         return SparseBitVector(self.size(), (self.val & mask) | (s.touint() << m))
