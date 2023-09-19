@@ -1813,7 +1813,43 @@ def test_sparse_sub_int():
     assert isinstance(SparseBitVector(6000, 0b11).sub_int(si(0b11)), SparseBitVector)
     assert isinstance(SparseBitVector(6000, r_uint(0xffffffffffffffff)).sub_int(bi(0b1)), bitvector.GenericBitVector)
 
-        
+def test_sparse_vector_update_subrange():
+    for c in bv, gbv:
+        x = SparseBitVector(100, 0b10001101)
+        x = x.update_subrange(5, 2, c(4, 0b1010))
+        assert x.toint() == 0b10101001
+        x = SparseBitVector(100, 0b10001101)
+        y = c(100, 0b1101001010010)
+        x = x.update_subrange(99, 0, y)
+        assert x.eq(y)
+        x = SparseBitVector(65, 0b10001101)
+        y = c(65, 0b1101001010010)
+        x = x.update_subrange(64, 0, y)
+        assert x.eq(y)
+    x = SparseBitVector(1000, 0b10001101)
+    y = gbv(1000, 0b1101001010010)
+    x = x.update_subrange(999, 0, y)
+    assert isinstance(x, bitvector.GenericBitVector)
+
+@given(strategies.data())
+def test_sparse_hypothesis_vector_update_subrange(data):
+    value1 = data.draw(strategies.integers(0, 2**64 - 1)) #Draw 1
+    bitwidth1 = data.draw(strategies.integers(65, 1000)) # Draw 2
+    m = data.draw(strategies.integers(0, 100)) # Draw 3
+    n = data.draw(strategies.integers(m + 1, 101)) # Draw 4
+    bitwidth2 = n -m + 1
+    value2 = data.draw(strategies.integers(0, 2**bitwidth2 - 1)) # Draw 5
+    
+    for c in bv, gbv:
+        x = SparseBitVector(bitwidth1, r_uint(value1))
+        x = x.update_subrange(n, m, c((bitwidth2), r_uint(value2)))
+        ans = str(bin(value1))[2:].rjust(bitwidth1, '0')[::-1]
+        ans_inserted =  ans[n+ 1:] + str(bin(value2))[2:] + ans[:m]
+        print(ans ,value2,m, n, ans_inserted)
+    
+        assert len(ans_inserted) == bitwidth1
+        assert x.tolong() == int(ans_inserted, 2)
+
 @given(strategies.data())
 def test_sparse_hypothesis_sub_int(data):
     value1 = data.draw(strategies.integers(0, 2**64 - 1))
